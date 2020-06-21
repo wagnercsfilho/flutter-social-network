@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_share/models/user.dart';
 import 'package:flutter_share/pages/activity_feed.dart';
+import 'package:flutter_share/pages/create_account.dart';
 import 'package:flutter_share/pages/profile.dart';
 import 'package:flutter_share/pages/search.dart';
 import 'package:flutter_share/pages/timeline.dart';
@@ -8,6 +11,8 @@ import 'package:flutter_share/pages/upload.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final googleSignIn = GoogleSignIn();
+final userRef = Firestore.instance.collection('users');
+User currentUser;
 
 class Home extends StatefulWidget {
   Home({Key key}) : super(key: key);
@@ -24,8 +29,13 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    googleSignIn.onCurrentUserChanged.listen(handleLogin);
-    googleSignIn.signInSilently().then(handleLogin);
+    googleSignIn.onCurrentUserChanged.listen(handleSignIn);
+    // Reauthenticate user when app is opened
+    googleSignIn.signInSilently(suppressErrors: false).then((account) {
+      handleSignIn(account);
+    }).catchError((err) {
+      print('Error signing in: $err');
+    });
   }
 
   @override
@@ -34,9 +44,9 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-  void handleLogin(GoogleSignInAccount account) {
+  void handleSignIn(GoogleSignInAccount account) async {
     if (account != null) {
-      print(account);
+      await createUserInFirestore(account);
       setState(() {
         isAuth = true;
       });
@@ -45,6 +55,32 @@ class _HomeState extends State<Home> {
         isAuth = false;
       });
     }
+  }
+
+  Future<void> createUserInFirestore(GoogleSignInAccount account) async {
+    DocumentSnapshot doc = await userRef.document(account.id).get();
+    final timestamp = DateTime.now();
+
+    if (!doc.exists) {
+      final username = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => CreateAccount()),
+      );
+
+      userRef.document(account.id).setData({
+        "id": account.id,
+        "username": username,
+        "photoUrl": account.photoUrl,
+        "email": account.email,
+        "displayName": account.displayName,
+        "bio": "",
+        "timestamp": timestamp
+      });
+
+      doc = await userRef.document(account.id).get();
+    }
+
+    currentUser = User.fromDocument(doc);
   }
 
   void onPageChanged(int pageIndex) {
