@@ -38,6 +38,7 @@ class _SearchState extends State<Search> {
         controller: searchController,
         onFieldSubmitted: handleSearch,
         decoration: InputDecoration(
+          border: InputBorder.none,
           hintText: 'Search for a user...',
           filled: true,
           prefixIcon: Icon(Icons.account_box),
@@ -45,6 +46,7 @@ class _SearchState extends State<Search> {
             icon: Icon(Icons.clear),
             onPressed: clearSearch,
           ),
+          contentPadding: EdgeInsets.only(top: 14),
         ),
       ),
     );

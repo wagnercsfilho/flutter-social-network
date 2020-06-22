@@ -7,7 +7,7 @@ AppBar header(
   bool removeBackButton = false,
 }) {
   return AppBar(
-    automaticallyImplyLeading: removeBackButton,
+    automaticallyImplyLeading: !removeBackButton,
     title: Text(
       isAppTitle ? 'Up!' : titleText,
       style: TextStyle(

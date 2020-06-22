@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_share/widgets/header.dart';
 
@@ -20,18 +18,7 @@ class _CreateAccountState extends State<CreateAccount> {
 
     if (form.validate()) {
       form.save();
-
-      final snackbar = SnackBar(
-        content: Center(
-          child: Text('Welcome $username!'),
-        ),
-      );
-
-      _scaffoldKey.currentState.showSnackBar(snackbar);
-
-      Timer(Duration(seconds: 2), () {
-        Navigator.pop(context, username);
-      });
+      Navigator.pop(context, username);
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_share/models/user.dart';
@@ -11,6 +12,8 @@ import 'package:flutter_share/pages/upload.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final googleSignIn = GoogleSignIn();
+final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+
 final userRef = Firestore.instance.collection('users');
 User currentUser;
 
@@ -29,13 +32,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    googleSignIn.onCurrentUserChanged.listen(handleSignIn);
-    // Reauthenticate user when app is opened
-    googleSignIn.signInSilently(suppressErrors: false).then((account) {
-      handleSignIn(account);
-    }).catchError((err) {
-      print('Error signing in: $err');
-    });
+    firebaseAuth.onAuthStateChanged.listen(handleSignIn);
   }
 
   @override
@@ -44,7 +41,22 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-  void handleSignIn(GoogleSignInAccount account) async {
+  login() async {
+    final GoogleSignInAccount googleUser = await googleSignIn.signIn();
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final AuthCredential credential = GoogleAuthProvider.getCredential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final FirebaseUser user =
+        (await firebaseAuth.signInWithCredential(credential)).user;
+    handleSignIn(user);
+  }
+
+  handleSignIn(FirebaseUser account) async {
     if (account != null) {
       await createUserInFirestore(account);
       setState(() {
@@ -57,8 +69,8 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<void> createUserInFirestore(GoogleSignInAccount account) async {
-    DocumentSnapshot doc = await userRef.document(account.id).get();
+  createUserInFirestore(FirebaseUser account) async {
+    DocumentSnapshot doc = await userRef.document(account.uid).get();
     final timestamp = DateTime.now();
 
     if (!doc.exists) {
@@ -67,8 +79,8 @@ class _HomeState extends State<Home> {
         MaterialPageRoute(builder: (context) => CreateAccount()),
       );
 
-      userRef.document(account.id).setData({
-        "id": account.id,
+      userRef.document(account.uid).setData({
+        "id": account.uid,
         "username": username,
         "photoUrl": account.photoUrl,
         "email": account.email,
@@ -77,20 +89,10 @@ class _HomeState extends State<Home> {
         "timestamp": timestamp
       });
 
-      doc = await userRef.document(account.id).get();
+      doc = await userRef.document(account.uid).get();
     }
 
     currentUser = User.fromDocument(doc);
-  }
-
-  void onPageChanged(int pageIndex) {
-    setState(() {
-      this.pageIndex = pageIndex;
-    });
-  }
-
-  login() {
-    googleSignIn.signIn();
   }
 
   signOut() {
@@ -106,15 +108,23 @@ class _HomeState extends State<Home> {
     );
   }
 
+  onPageChanged(int pageIndex) {
+    setState(() {
+      this.pageIndex = pageIndex;
+    });
+  }
+
   buildAuthScreen() {
     return Scaffold(
       body: PageView(
         children: <Widget>[
           Timeline(),
           ActivityFeed(),
-          Upload(),
+          Upload(
+            currentUser: currentUser,
+          ),
           Search(),
-          Profile(),
+          Profile(profileId: currentUser?.id),
         ],
         controller: pageController,
         onPageChanged: onPageChanged,
