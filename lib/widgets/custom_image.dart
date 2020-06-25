@@ -6,7 +6,12 @@ Widget cachedNetworkImage(String mediaUrl) {
     imageUrl: mediaUrl,
     fit: BoxFit.cover,
     placeholder: (context, url) => Padding(
-      child: CircularProgressIndicator(),
+      child: Expanded(
+        flex: 1,
+        child: Container(
+          decoration: BoxDecoration(color: Colors.grey),
+        ),
+      ),
       padding: EdgeInsets.all(20),
     ),
     errorWidget: (context, url, error) => Icon(Icons.error),

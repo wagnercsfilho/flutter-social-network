@@ -68,7 +68,7 @@ class _ProfileState extends State<Profile> {
         Text(
           count.toString(),
           style: TextStyle(
-            fontSize: 22.0,
+            fontSize: 20.0,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -148,6 +148,7 @@ class _ProfileState extends State<Profile> {
           child: Column(
             children: <Widget>[
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   CircleAvatar(
                     radius: 40.0,
@@ -204,41 +205,53 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  buildProfilePosts() {
+  buildNoContent() {
+    return Center(
+      child: SvgPicture.asset(
+        'assets/images/no_content.svg',
+        height: 100,
+      ),
+    );
+  }
+
+  buildGridProfilePosts() {
     if (isLoading) {
       return circularProgress();
     }
 
     if (posts.length == 0) {
-      return Center(
-        child: SvgPicture.asset(
-          'assets/images/no_content.svg',
-          height: 100,
-        ),
-      );
+      buildNoContent();
     }
 
-    if (postOrientation == 'grid') {
-      List<GridTile> gridTiles =
-          posts.map((post) => GridTile(child: PostTile(post))).toList();
-
-      return GridView.count(
+    return GridView.builder(
+      itemBuilder: (context, index) {
+        return GridTile(child: PostTile(posts[index]));
+      },
+      shrinkWrap: true,
+      itemCount: posts.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         childAspectRatio: 1.0,
         mainAxisSpacing: 1.5,
         crossAxisSpacing: 1.5,
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        children: gridTiles,
-      );
+      ),
+    );
+  }
+
+  buildListProfilePosts() {
+    if (isLoading) {
+      return circularProgress();
     }
 
-    List<PostWidget> postWidgets =
-        posts.map((post) => PostWidget(post)).toList();
+    if (posts.length == 0) {
+      buildNoContent();
+    }
 
-    return Column(
-      children: postWidgets,
-    );
+    return ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          return PostWidget(posts[index]);
+        });
   }
 
   buildTogglePostOrientation() {
@@ -267,18 +280,49 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: header(context, titleText: 'Profile'),
-      body: ListView(
-        children: <Widget>[
-          buildProfileHeader(),
-          Divider(
-            height: 0,
+      body: NestedScrollView(
+        controller: ScrollController(keepScrollOffset: true),
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return <Widget>[
+            SliverList(
+              delegate: SliverChildListDelegate([buildProfileHeader()]),
+            ),
+          ];
+        },
+        body: DefaultTabController(
+          length: 2,
+          child: Column(
+            children: <Widget>[
+              Divider(
+                height: 0.0,
+              ),
+              Container(
+                child: TabBar(
+                  unselectedLabelColor: Colors.grey,
+                  labelColor: Theme.of(context).accentColor,
+                  indicatorColor: Colors.transparent,
+                  tabs: [
+                    Tab(
+                      icon: Icon(Icons.grid_on),
+                    ),
+                    Tab(icon: Icon(Icons.list))
+                  ],
+                ),
+              ),
+              Divider(
+                height: 0.0,
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    buildGridProfilePosts(),
+                    buildListProfilePosts(),
+                  ],
+                ),
+              )
+            ],
           ),
-          buildTogglePostOrientation(),
-          Divider(
-            height: 0,
-          ),
-          buildProfilePosts(),
-        ],
+        ),
       ),
     );
   }
