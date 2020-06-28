@@ -254,28 +254,6 @@ class _ProfileState extends State<Profile> {
         });
   }
 
-  buildTogglePostOrientation() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: <Widget>[
-        IconButton(
-          onPressed: () => setPostOrientation('grid'),
-          icon: Icon(Icons.grid_on),
-          color: postOrientation == 'grid'
-              ? Theme.of(context).primaryColor
-              : Colors.grey,
-        ),
-        IconButton(
-          onPressed: () => setPostOrientation('list'),
-          icon: Icon(Icons.list),
-          color: postOrientation == 'list'
-              ? Theme.of(context).primaryColor
-              : Colors.grey,
-        )
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
