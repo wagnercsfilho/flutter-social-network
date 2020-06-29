@@ -1,19 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_share/models/user.dart';
+import 'package:flutter_share/models/user_model.dart';
 import 'package:flutter_share/widgets/progress.dart';
 import 'package:flutter_svg/svg.dart';
 
 final userRef = Firestore.instance.collection('users');
 
-class Search extends StatefulWidget {
-  Search({Key key}) : super(key: key);
+class SearchScreen extends StatefulWidget {
+  SearchScreen({Key key}) : super(key: key);
 
   @override
-  _SearchState createState() => _SearchState();
+  _SearchScreenState createState() => _SearchScreenState();
 }
 
-class _SearchState extends State<Search> {
+class _SearchScreenState extends State<SearchScreen> {
   final searchController = TextEditingController();
   Future<QuerySnapshot> searchResultsFuture;
 

@@ -11,23 +11,23 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image/image.dart' as Im;
 
-import '../models/user.dart';
+import '../models/user_model.dart';
 import '../widgets/header.dart';
 import '../widgets/progress.dart';
 
 final storageRef = FirebaseStorage.instance.ref();
 final postRef = Firestore.instance.collection('posts');
 
-class Upload extends StatefulWidget {
+class UploadScreen extends StatefulWidget {
   final User currentUser;
 
-  Upload({Key key, this.currentUser}) : super(key: key);
+  UploadScreen({Key key, this.currentUser}) : super(key: key);
 
   @override
-  _UploadState createState() => _UploadState();
+  _UploadScreenState createState() => _UploadScreenState();
 }
 
-class _UploadState extends State<Upload> {
+class _UploadScreenState extends State<UploadScreen> {
   File file;
   final picker = ImagePicker();
   bool isUploading = false;

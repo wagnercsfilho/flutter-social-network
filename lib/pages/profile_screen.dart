@@ -1,27 +1,29 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_share/models/post.dart';
-import 'package:flutter_share/pages/edit_profile.dart';
-import 'package:flutter_share/pages/home.dart';
+import 'package:flutter_share/models/post_model.dart';
+import 'package:flutter_share/pages/edit_profile_screen.dart';
+import 'package:flutter_share/pages/home_screen.dart';
+import 'package:flutter_share/states/auth_state.dart';
 import 'package:flutter_share/widgets/header.dart';
-import 'package:flutter_share/widgets/post.dart';
+import 'package:flutter_share/widgets/post_item.dart';
 import 'package:flutter_share/widgets/post_tile.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
-import '../models/user.dart';
+import '../models/user_model.dart';
 import '../widgets/progress.dart';
 
-class Profile extends StatefulWidget {
+class ProfileScreen extends StatefulWidget {
   final String profileId;
 
-  Profile({Key key, this.profileId}) : super(key: key);
+  ProfileScreen({Key key, this.profileId}) : super(key: key);
 
   @override
-  _ProfileState createState() => _ProfileState();
+  _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _ProfileState extends State<Profile> {
+class _ProfileScreenState extends State<ProfileScreen> {
   final userRef = Firestore.instance.collection('users');
   final postRef = Firestore.instance.collection('posts');
 
@@ -112,7 +114,8 @@ class _ProfileState extends State<Profile> {
   }
 
   buildProfileButton() {
-    final isCurrentProfile = widget.profileId == currentUser.id;
+    final state = Provider.of<AuthState>(context);
+    final isCurrentProfile = widget.profileId == state.currentUser.id;
 
     if (isCurrentProfile) {
       return buildButton(
@@ -128,7 +131,7 @@ class _ProfileState extends State<Profile> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EditProfile(),
+        builder: (context) => EditProfileScreen(),
       ),
     );
   }
@@ -250,7 +253,7 @@ class _ProfileState extends State<Profile> {
     return ListView.builder(
         itemCount: posts.length,
         itemBuilder: (context, index) {
-          return PostWidget(posts[index]);
+          return PostItem(posts[index]);
         });
   }
 

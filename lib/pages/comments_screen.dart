@@ -1,35 +1,36 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_share/models/comment.dart';
-import 'package:flutter_share/pages/home.dart';
+import 'package:flutter_share/models/comment_model.dart';
+import 'package:flutter_share/states/auth_state.dart';
+import 'package:provider/provider.dart';
 import '../widgets/progress.dart';
 import '../widgets/header.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 final commentRef = Firestore.instance.collection('comments');
 
-class Comments extends StatefulWidget {
+class CommentsScreen extends StatefulWidget {
   final String postId;
   final String postOwnerId;
   final String postMediaUrl;
 
-  Comments({this.postId, this.postMediaUrl, this.postOwnerId});
+  CommentsScreen({this.postId, this.postMediaUrl, this.postOwnerId});
 
   @override
-  CommentsState createState() => CommentsState(
+  CommentsScreenState createState() => CommentsScreenState(
       postId: this.postId,
       postOwnerId: this.postOwnerId,
       postMediaUrl: this.postMediaUrl);
 }
 
-class CommentsState extends State<Comments> {
+class CommentsScreenState extends State<CommentsScreen> {
   final String postId;
   final String postOwnerId;
   final String postMediaUrl;
   TextEditingController commentController = TextEditingController();
 
-  CommentsState({this.postId, this.postMediaUrl, this.postOwnerId});
+  CommentsScreenState({this.postId, this.postMediaUrl, this.postOwnerId});
 
   buildComments() {
     return StreamBuilder(
@@ -72,14 +73,15 @@ class CommentsState extends State<Comments> {
   }
 
   addComment() {
+    final state = Provider.of<AuthState>(context);
     final DateTime timestamp = DateTime.now();
 
     commentRef.document(postId).collection('comments').add({
-      'username': currentUser.username,
+      'username': state.currentUser.username,
       'comment': commentController.text,
       'timestamp': timestamp,
-      'avatarUrl': currentUser.photoUrl,
-      'userId': currentUser.id
+      'avatarUrl': state.currentUser.photoUrl,
+      'userId': state.currentUser.id
     });
 
     commentController.clear();
@@ -94,7 +96,9 @@ class CommentsState extends State<Comments> {
           Expanded(
             child: buildComments(),
           ),
-          Divider(),
+          Divider(
+            height: 1.0,
+          ),
           ListTile(
             title: TextFormField(
               controller: commentController,

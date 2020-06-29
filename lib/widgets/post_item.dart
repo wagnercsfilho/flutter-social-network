@@ -2,68 +2,70 @@ import 'dart:async';
 
 import 'package:animator/animator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_share/models/post.dart';
-import 'package:flutter_share/pages/comments.dart';
-import 'package:flutter_share/pages/home.dart';
+import 'package:flutter_share/models/post_model.dart';
+import 'package:flutter_share/pages/comments_screen.dart';
+import 'package:flutter_share/repositories/activity_repository.dart';
+import 'package:flutter_share/repositories/like_repository.dart';
+import 'package:flutter_share/states/auth_state.dart';
 import 'package:flutter_share/widgets/custom_image.dart';
+import 'package:provider/provider.dart';
 
-final postRef = Firestore.instance.collection('posts');
-
-class PostWidget extends StatefulWidget {
+class PostItem extends StatefulWidget {
   final Post post;
 
-  PostWidget(this.post);
+  PostItem(this.post);
 
   @override
-  _PostWidgetState createState() => _PostWidgetState();
+  _PostItemState createState() => _PostItemState();
 }
 
-class _PostWidgetState extends State<PostWidget> {
+class _PostItemState extends State<PostItem> {
   Post post;
-  String currentUserId = currentUser?.id;
   int likeCount;
   bool isLiked;
   Map likes;
   bool showHeart = false;
+  AuthState state;
+
+  final likeRepository = new LikeRepository();
+  final activityRepository = new ActivityRepository();
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    state ??= Provider.of<AuthState>(context);
+
     likeCount = widget.post.getLikeCount(widget.post.likes);
     likes = widget.post.likes;
-    isLiked = likes[currentUserId] == true;
+    isLiked = (likes[state.currentUser.id] == true);
   }
 
   handleLikePost() {
+    final state = Provider.of<AuthState>(context);
+
     if (isLiked) {
-      postRef
-          .document(widget.post.ownerId)
-          .collection('userPosts')
-          .document(widget.post.postId)
-          .updateData({
-        'likes.$currentUserId': false,
-      });
+      likeRepository.dislike(user: state.currentUser, post: widget.post);
+      activityRepository.removeLikeToActivityFeed(
+        post: widget.post,
+      );
 
       setState(() {
         likeCount -= 1;
         isLiked = false;
-        likes[currentUserId] = false;
+        likes[state.currentUser.id] = false;
       });
     } else {
-      postRef
-          .document(widget.post.ownerId)
-          .collection('userPosts')
-          .document(widget.post.postId)
-          .updateData({
-        'likes.$currentUserId': true,
-      });
+      likeRepository.like(user: state.currentUser, post: widget.post);
+      activityRepository.addLikeToActivityFeed(
+        currentUser: state.currentUser,
+        post: widget.post,
+      );
 
       setState(() {
         likeCount += 1;
         isLiked = true;
-        likes[currentUserId] = true;
+        likes[state.currentUser.id] = true;
         showHeart = true;
       });
 
@@ -77,7 +79,7 @@ class _PostWidgetState extends State<PostWidget> {
 
   showComments() {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return Comments(
+      return CommentsScreen(
         postId: widget.post.postId,
         postOwnerId: widget.post.ownerId,
         postMediaUrl: widget.post.mediaUrl,

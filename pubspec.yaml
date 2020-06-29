@@ -25,6 +25,8 @@ dependencies:
   path_provider: ^1.6.11
   animator: ^2.0.1
   timeago: ^2.0.26
+  provider: ^4.1.3
+  get_it: ^4.0.2
 
 dev_dependencies:
   flutter_test:

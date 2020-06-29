@@ -5,14 +5,14 @@ import 'package:flutter_share/widgets/progress.dart';
 
 final userRefs = Firestore.instance.collection('users');
 
-class Timeline extends StatefulWidget {
-  Timeline({Key key}) : super(key: key);
+class TimelineScreen extends StatefulWidget {
+  TimelineScreen({Key key}) : super(key: key);
 
   @override
-  _TimelineState createState() => _TimelineState();
+  _TimelineScreenState createState() => _TimelineScreenState();
 }
 
-class _TimelineState extends State<Timeline> {
+class _TimelineScreenState extends State<TimelineScreen> {
   @override
   void initState() {
     super.initState();

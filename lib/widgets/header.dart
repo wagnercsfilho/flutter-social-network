@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-AppBar header(
-  BuildContext context, {
-  bool isAppTitle = false,
-  String titleText,
-  bool removeBackButton = false,
-}) {
+AppBar header(BuildContext context,
+    {bool isAppTitle = false,
+    String titleText,
+    bool removeBackButton = false,
+    List<Widget> actions}) {
   return AppBar(
     automaticallyImplyLeading: !removeBackButton,
     title: Text(
@@ -18,5 +17,6 @@ AppBar header(
     ),
     centerTitle: true,
     backgroundColor: Theme.of(context).primaryColor,
+    actions: actions,
   );
 }
